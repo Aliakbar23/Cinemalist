@@ -383,7 +383,7 @@ export default function MovieDetailPage() {
         // 6. Watermark footer
         ctx.fillStyle = "rgba(147, 51, 234, 0.75)";
         ctx.font = "900 36px Outfit, sans-serif";
-        ctx.fillText("🎬 CINEVAULT PWA", 540, 1720);
+        ctx.fillText("🎬 CINEVAULT PWA by Aliakbar", 540, 1720);
 
         ctx.fillStyle = "rgba(147, 51, 234, 0.4)";
         ctx.font = "500 24px Inter, sans-serif";
