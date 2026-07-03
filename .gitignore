@@ -1,0 +1,17 @@
+# Next.js build and dependencies
+movie-app/node_modules/
+movie-app/.next/
+movie-app/out/
+
+# Environment files
+movie-app/.env.local
+movie-app/.env.development.local
+movie-app/.env.production.local
+movie-app/.env.test.local
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.gemini/

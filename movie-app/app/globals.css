@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Dark Mode as Default */
+  --bg: #0A0A0F;
+  --surface: #12121A;
+  --card: #1A1A26;
+  --border: #2A2A3A;
+  --text: #F8FAFC;
+  --muted: #6B7280;
+  --soft: #9CA3AF;
+  
+  --purple: #7C3AED;
+  --purple-light: #A78BFA;
+  --purple-deep: #4C1D95;
+  --purple-glow: rgba(124, 58, 237, 0.3);
+  
+  --gold: #F59E0B;
+  --gold-light: #FCD34D;
+  --gold-glow: rgba(245, 158, 11, 0.25);
+  
+  --glass-bg: rgba(26, 26, 38, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.06);
+
+  --cinema-g1: #4C1D95;
+  --cinema-g2: #7C3AED;
+  --gold-shine-g1: #F59E0B;
+  --gold-shine-g2: #FCD34D;
+  --card-glow-g1: #1A1A26;
+  --card-glow-g2: #1E1E2E;
+  
+  --hero-overlay: linear-gradient(to right, rgba(10, 10, 15, 0.98) 30%, rgba(10, 10, 15, 0.6) 60%, transparent 100%);
+  --hero-bottom: linear-gradient(to top, #0A0A0F 0%, rgba(10, 10, 15, 0.8) 40%, transparent 100%);
+  
+  --text-gradient: linear-gradient(135deg, #A78BFA, #F59E0B);
+}
+
+.light {
+  /* Playful Light Mode */
+  --bg: #FDFBF7; /* Warm soft vanilla cream */
+  --surface: #FFF5EA; /* Playful soft peach container */
+  --card: #FFFFFF; /* White card */
+  --border: #F3E8FF; /* Soft lilac border */
+  --text: #2E1A47; /* Playful deep grape/plum text */
+  --muted: #8E7F98; /* Grayish plum */
+  --soft: #6D28D9; /* Playful deep violet for soft contrast */
+  
+  --purple: #9333EA;
+  --purple-light: #C084FC;
+  --purple-deep: #581C87;
+  --purple-glow: rgba(147, 51, 234, 0.15);
+  
+  --gold: #EA580C; /* Playful amber-orange for high light-mode contrast */
+  --gold-light: #FDBA74;
+  --gold-glow: rgba(234, 88, 12, 0.15);
+  
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(147, 51, 234, 0.1);
+
+  --cinema-g1: #8B5CF6;
+  --cinema-g2: #EC4899; /* Pink gradient for a playful flair! */
+  --gold-shine-g1: #EA580C;
+  --gold-shine-g2: #FBBF24;
+  --card-glow-g1: #FFFFFF;
+  --card-glow-g2: #FFFBEB;
+  
+  --hero-overlay: linear-gradient(to right, rgba(253, 251, 247, 0.98) 30%, rgba(253, 251, 247, 0.6) 60%, transparent 100%);
+  --hero-bottom: linear-gradient(to top, #FDFBF7 0%, rgba(253, 251, 247, 0.8) 40%, transparent 100%);
+  
+  --text-gradient: linear-gradient(135deg, #EC4899, #F59E0B);
+}
+
+@layer base {
+  * { -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-inter), sans-serif;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 4px; }
+}
+
+@layer utilities {
+  .card { 
+    background: var(--card); 
+    border-radius: 12px; 
+    border: 1px solid var(--border); 
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+  .text-gradient {
+    background: var(--text-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .shimmer {
+    background: linear-gradient(90deg, var(--card) 25%, var(--border) 50%, var(--card) 75%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s linear infinite;
+  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+}
+
+/* Global Light Mode Contrast Helpers */
+.light input {
+  color: var(--text) !important;
+}
+.light select {
+  color: var(--text) !important;
+  background-color: var(--card) !important;
+}
+.light select option {
+  background-color: var(--card) !important;
+  color: var(--text) !important;
+}

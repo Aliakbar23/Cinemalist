@@ -1,0 +1,121 @@
+"use client";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { posterUrl, year, rating, type Movie } from "@/lib/api";
+import { getWatchlistItem, addToWatchlist, removeFromWatchlist } from "@/lib/db";
+
+function StarRating({ score }: { score: number }) {
+  const stars = Math.round(score / 2);
+  return (
+    <div className="flex items-center gap-1">
+      {[1,2,3,4,5].map((s) => (
+        <span key={s} className={`text-[10px] ${s <= stars ? "text-gold" : "text-border"}`}>★</span>
+      ))}
+      <span className="text-xs text-muted ml-1">{rating(score)}</span>
+    </div>
+  );
+}
+
+export default function MovieCard({ movie, index = 0 }: { movie: Movie; index?: number }) {
+  const [inWatchlist, setInWatchlist] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const poster = posterUrl(movie.poster_path);
+
+  useEffect(() => {
+    getWatchlistItem(movie.id).then((item) => setInWatchlist(!!item));
+  }, [movie.id]);
+
+  const toggleWatchlist = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (inWatchlist) {
+      await removeFromWatchlist(movie.id);
+      setInWatchlist(false);
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(15);
+      }
+    } else {
+      await addToWatchlist({
+        id: movie.id,
+        title: movie.title,
+        posterPath: movie.poster_path,
+        backdropPath: movie.backdrop_path,
+        releaseDate: movie.release_date,
+        voteAverage: movie.vote_average,
+        overview: movie.overview,
+        status: "want",
+      });
+      setInWatchlist(true);
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(15);
+      }
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.05, ease: "easeOut" }}
+      whileHover={{ y: -6 }}
+      className="group relative"
+    >
+      <Link href={`/movie/${movie.id}`} className="block">
+        {/* Poster */}
+        <div className="relative overflow-hidden rounded-xl aspect-[2/3] bg-card shadow-poster">
+          {poster && !imgError ? (
+            <Image
+              src={poster}
+              alt={movie.title}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center bg-card text-4xl">🎬</div>
+          )}
+
+          {/* Overlay gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+          {/* Rating badge */}
+          <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full glass px-2 py-1">
+            <span className="text-gold text-xs">★</span>
+            <span className="text-xs font-bold text-white">{rating(movie.vote_average)}</span>
+          </div>
+
+          {/* Watchlist btn */}
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            onClick={toggleWatchlist}
+            className={`absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full transition-all
+            ${inWatchlist
+              ? "bg-purple text-white shadow-cinema-sm"
+              : "glass text-muted opacity-0 group-hover:opacity-100"
+            }`}
+          >
+            <span className="text-sm">{inWatchlist ? "✓" : "+"}</span>
+          </motion.button>
+
+          {/* Year badge bottom */}
+          <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="rounded-lg glass px-2 py-0.5 text-xs text-soft">{year(movie.release_date)}</span>
+          </div>
+        </div>
+
+        {/* Info */}
+        <div className="mt-2.5 px-0.5">
+          <h3 className="font-display font-semibold text-sm text-text line-clamp-2 leading-tight group-hover:text-purple-light transition-colors">
+            {movie.title}
+          </h3>
+          <div className="mt-1.5">
+            <StarRating score={movie.vote_average} />
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
