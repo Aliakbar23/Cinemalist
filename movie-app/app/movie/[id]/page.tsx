@@ -76,15 +76,15 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
   let streamUrl = "";
   if (mediaType === "tv") {
     streamUrl = server === "vidking" 
-      ? `https://www.vidking.net/embed/tv/${movieId}/${season}/${episode}?autoPlay=true&nextEpisode=true&episodeSelector=true`
+      ? `https://www.vidking.net/embed/tv/${movieId}/${season}/${episode}?autoPlay=true&nextEpisode=true&episodeSelector=true&sub=id&lang=id`
       : server === "vidcodin"
-      ? `https://vidcodin.net/embed/tv/${movieId}/${season}/${episode}?autoPlay=true`
+      ? `https://vidcodin.net/embed/tv/${movieId}/${season}/${episode}?autoPlay=true&sub=id`
       : `https://vidsrc.cc/v2/embed/tv/${movieId}/${season}/${episode}`;
   } else {
     streamUrl = server === "vidking" 
-      ? `https://www.vidking.net/embed/movie/${movieId}?autoPlay=true&nextEpisode=true&episodeSelector=true`
+      ? `https://www.vidking.net/embed/movie/${movieId}?autoPlay=true&nextEpisode=true&episodeSelector=true&sub=id&lang=id`
       : server === "vidcodin"
-      ? `https://vidcodin.net/embed/movie/${movieId}?autoPlay=true`
+      ? `https://vidcodin.net/embed/movie/${movieId}?autoPlay=true&sub=id`
       : `https://vidsrc.cc/v2/embed/movie/${movieId}`;
   }
 
