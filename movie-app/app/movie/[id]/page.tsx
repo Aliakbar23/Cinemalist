@@ -93,10 +93,10 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
   }
 
   const serverNames: Record<string, string> = {
-    vidlink: "Cineby / VidLink Pro (Pilih Resolusi Manual 4K/1080p/720p ⭐)",
-    vidking: "Vidking.net (Sub Indo ⭐ + AutoPlay & Selector)",
-    vidcodin: "VidCodin.net (Server Alternatif)",
-    vidsrc: "VidSrc (Server Cadangan)",
+    vidlink: "Server 1 (Cineby ⭐ — Kualitas 4K/1080p Rekomendasi)",
+    vidking: "Server 2 (Vidking — Sub Indo & Selector)",
+    vidcodin: "Server 3 (VidCodin — Alternatif)",
+    vidsrc: "Server 4 (Backup)",
   };
 
   return (
@@ -124,22 +124,11 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
                 <h3 className="font-display font-bold text-text text-sm sm:text-base leading-tight">
                   {title} {mediaType === "tv" ? `(S${season} E${episode})` : ""}
                 </h3>
-                <p className="text-[11px] text-purple-light">Server: {serverNames[server]}</p>
+                <p className="text-[11px] text-purple-light">{serverNames[server]}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <a
-                href={streamUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 rounded-lg bg-surface border border-purple/30 px-2.5 py-1 text-xs font-semibold text-purple-light hover:bg-purple/10 hover:text-white transition-all shadow-cinema-sm"
-                title="Buka Player Full HD di Tab Baru"
-              >
-                <span>↗️</span>
-                <span className="hidden sm:inline">Full HD (Tab Baru)</span>
-              </a>
-
               <div className="flex flex-wrap items-center rounded-lg bg-surface p-1 border border-border gap-1">
                 <button
                   onClick={() => setServer("vidlink")}
@@ -147,7 +136,7 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
                     server === "vidlink" ? "bg-gradient-to-r from-purple to-indigo-600 text-white shadow-cinema-sm" : "text-muted hover:text-text"
                   }`}
                 >
-                  Cineby 4K/1080p ⭐
+                  Server 1 (Cineby ⭐)
                 </button>
                 <button
                   onClick={() => setServer("vidking")}
@@ -155,7 +144,7 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
                     server === "vidking" ? "bg-purple text-white shadow-sm" : "text-muted hover:text-text"
                   }`}
                 >
-                  Vidking (Sub Indo)
+                  Server 2 (Vidking)
                 </button>
                 <button
                   onClick={() => setServer("vidcodin")}
@@ -163,7 +152,7 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
                     server === "vidcodin" ? "bg-purple text-white shadow-sm" : "text-muted hover:text-text"
                   }`}
                 >
-                  VidCodin
+                  Server 3
                 </button>
                 <button
                   onClick={() => setServer("vidsrc")}
@@ -171,7 +160,7 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
                     server === "vidsrc" ? "bg-purple text-white shadow-sm" : "text-muted hover:text-text"
                   }`}
                 >
-                  Backup
+                  Server 4
                 </button>
               </div>
 
@@ -200,7 +189,7 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
           <div className="bg-surface/70 px-4 py-2 text-[11px] text-muted text-center border-t border-border flex items-center justify-center gap-1">
             <span>💡</span>
             <span>
-              <strong>Tips Pemutar:</strong> Server <strong className="text-purple-light">Cineby 4K/1080p ⭐</strong> menyediakan menu pilihan resolusi manual (4K, 1080p, 720p, 480p). Gunakan <strong>Vidking (Sub Indo)</strong> jika memerlukan teks Bahasa Indonesia otomatis.
+              <strong>Rekomendasi:</strong> Gunakan <strong className="text-purple-light">Server 1 (Cineby ⭐)</strong> untuk kualitas 4K/1080p jernih & tampilan subtitle tanpa background.
             </span>
           </div>
         </motion.div>
