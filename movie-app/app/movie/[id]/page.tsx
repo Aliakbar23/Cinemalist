@@ -179,6 +179,7 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
             <iframe
               src={streamUrl}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
               allowFullScreen
               referrerPolicy="origin"
               className="h-full w-full border-0"
