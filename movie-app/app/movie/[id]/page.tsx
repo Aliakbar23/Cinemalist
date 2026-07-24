@@ -71,17 +71,21 @@ interface StreamPlayerModalProps {
 }
 
 function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, episode = 1, onClose }: StreamPlayerModalProps) {
-  const [server, setServer] = useState<"vidking" | "vidcodin" | "vidsrc">("vidking");
+  const [server, setServer] = useState<"vidlink" | "vidking" | "vidcodin" | "vidsrc">("vidlink");
 
   let streamUrl = "";
   if (mediaType === "tv") {
-    streamUrl = server === "vidking" 
+    streamUrl = server === "vidlink"
+      ? `https://vidlink.pro/tv/${movieId}/${season}/${episode}?primaryColor=7c3aed&secondaryColor=a78bfa&iconColor=a78bfa&nextEpisode=true&episodeSelector=true`
+      : server === "vidking" 
       ? `https://www.vidking.net/embed/tv/${movieId}/${season}/${episode}?autoPlay=true&nextEpisode=true&episodeSelector=true&sub=id&lang=id`
       : server === "vidcodin"
       ? `https://vidcodin.net/embed/tv/${movieId}/${season}/${episode}?autoPlay=true&sub=id`
       : `https://vidsrc.cc/v2/embed/tv/${movieId}/${season}/${episode}`;
   } else {
-    streamUrl = server === "vidking" 
+    streamUrl = server === "vidlink"
+      ? `https://vidlink.pro/movie/${movieId}?primaryColor=7c3aed&secondaryColor=a78bfa&iconColor=a78bfa&nextEpisode=true&episodeSelector=true`
+      : server === "vidking" 
       ? `https://www.vidking.net/embed/movie/${movieId}?autoPlay=true&nextEpisode=true&episodeSelector=true&sub=id&lang=id`
       : server === "vidcodin"
       ? `https://vidcodin.net/embed/movie/${movieId}?autoPlay=true&sub=id`
@@ -89,6 +93,7 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
   }
 
   const serverNames: Record<string, string> = {
+    vidlink: "Cineby / VidLink Pro (Pilih Resolusi Manual 4K/1080p/720p ⭐)",
     vidking: "Vidking.net (Sub Indo ⭐ + AutoPlay & Selector)",
     vidcodin: "VidCodin.net (Server Alternatif)",
     vidsrc: "VidSrc (Server Cadangan)",
@@ -137,12 +142,20 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
 
               <div className="flex flex-wrap items-center rounded-lg bg-surface p-1 border border-border gap-1">
                 <button
-                  onClick={() => setServer("vidking")}
+                  onClick={() => setServer("vidlink")}
                   className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${
-                    server === "vidking" ? "bg-gradient-to-r from-purple to-indigo-600 text-white shadow-cinema-sm" : "text-muted hover:text-text"
+                    server === "vidlink" ? "bg-gradient-to-r from-purple to-indigo-600 text-white shadow-cinema-sm" : "text-muted hover:text-text"
                   }`}
                 >
-                  Vidking (Sub Indo ⭐)
+                  Cineby 4K/1080p ⭐
+                </button>
+                <button
+                  onClick={() => setServer("vidking")}
+                  className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${
+                    server === "vidking" ? "bg-purple text-white shadow-sm" : "text-muted hover:text-text"
+                  }`}
+                >
+                  Vidking (Sub Indo)
                 </button>
                 <button
                   onClick={() => setServer("vidcodin")}
@@ -187,7 +200,7 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
           <div className="bg-surface/70 px-4 py-2 text-[11px] text-muted text-center border-t border-border flex items-center justify-center gap-1">
             <span>💡</span>
             <span>
-              <strong>Tips Subtitle:</strong> Gunakan server <strong className="text-purple-light">Vidking (Sub Indo ⭐)</strong> untuk ketersediaan Subtitle Indonesia paling lengkap & tombol episode otomatis.
+              <strong>Tips Pemutar:</strong> Server <strong className="text-purple-light">Cineby 4K/1080p ⭐</strong> menyediakan menu pilihan resolusi manual (4K, 1080p, 720p, 480p). Gunakan <strong>Vidking (Sub Indo)</strong> jika memerlukan teks Bahasa Indonesia otomatis.
             </span>
           </div>
         </motion.div>
