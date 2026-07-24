@@ -192,6 +192,7 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
               allowFullScreen
               referrerPolicy="origin"
+              loading="eager"
               className="h-full w-full border-0"
             />
           </div>

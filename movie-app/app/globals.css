@@ -73,14 +73,19 @@
 }
 
 @layer base {
-  * { -webkit-tap-highlight-color: transparent; }
-  html { scroll-behavior: smooth; }
+  * { 
+    -webkit-tap-highlight-color: transparent; 
+    box-sizing: border-box;
+  }
+  html { 
+    scroll-behavior: smooth; 
+  }
   body {
     background-color: var(--bg);
     color: var(--text);
-    font-family: var(--font-inter), sans-serif;
+    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    text-rendering: optimizeSpeed;
   }
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -92,14 +97,18 @@
     background: var(--card); 
     border-radius: 12px; 
     border: 1px solid var(--border); 
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+    transform: translateZ(0);
   }
   .glass {
     background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+    transform: translateZ(0);
+  }
+  @supports (-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px)) {
+    .glass {
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
   }
   .text-gradient {
     background: var(--text-gradient);
