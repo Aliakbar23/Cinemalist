@@ -72,6 +72,28 @@ export default function MovieRow({
             </Link>
           </motion.div>
         ))}
+
+        {seeAllHref && (
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            whileHover={{ scale: 1.05 }}
+            className="flex-shrink-0 flex items-center justify-center"
+            style={{ width: "clamp(120px, 30vw, 160px)" }}
+          >
+            <Link
+              href={seeAllHref}
+              className="flex flex-col items-center justify-center w-full aspect-[2/3] rounded-xl border border-purple/30 bg-purple/10 text-purple-light hover:bg-purple/20 transition-all p-3 text-center group shadow-cinema-sm"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple/20 border border-purple/40 mb-2 group-hover:scale-110 transition-transform">
+                <span className="text-xl">➔</span>
+              </div>
+              <span className="font-display font-bold text-xs sm:text-sm text-text">Lihat Semua</span>
+              <span className="text-[10px] text-purple-light/80 mt-1">Jelajahi Katalog ➔</span>
+            </Link>
+          </motion.div>
+        )}
       </div>
     </section>
   );
