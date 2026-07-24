@@ -7,16 +7,21 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], weight: ["400","500","600","700","800","900"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
-  title: "CineVault — Movie Watchlist",
-  description: "Temukan, simpan, dan track film favoritmu. Powered by TMDB.",
+  title: "CineVault — Movie Watchlist & Streaming",
+  description: "Temukan, simpan, dan nonton film, K-Drama, dan Anime favoritmu. Powered by TMDB & Vidking.",
   manifest: "/manifest.json",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "CineVault" },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "format-detection": "telephone=no",
+  },
 };
 export const viewport: Viewport = {
   themeColor: "#0A0A0F",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
