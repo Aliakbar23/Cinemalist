@@ -1,7 +1,7 @@
 {
   "name": "CineVault — Movie Watchlist",
   "short_name": "CineVault",
-  "description": "Temukan, simpan, dan track film favoritmu. Powered by TMDB.",
+  "description": "Temukan, simpan, nonton, dan track film favoritmu. Powered by TMDB & Vidking.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0A0A0F",

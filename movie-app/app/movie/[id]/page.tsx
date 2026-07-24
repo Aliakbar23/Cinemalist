@@ -61,6 +61,87 @@ function TrailerModal({ videoKey, onClose }: { videoKey: string; onClose: () => 
   );
 }
 
+function StreamPlayerModal({ movieId, title, onClose }: { movieId: number; title: string; onClose: () => void }) {
+  const [server, setServer] = useState<"vidking" | "vidsrc">("vidking");
+
+  const streamUrl = server === "vidking" 
+    ? `https://www.vidking.net/embed/movie/${movieId}`
+    : `https://vidsrc.cc/v2/embed/movie/${movieId}`;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-2 sm:p-4 backdrop-blur-md"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          className="relative w-full max-w-5xl rounded-2xl overflow-hidden bg-bg border border-purple/30 shadow-[0_0_50px_rgba(147,51,234,0.3)]"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header Player */}
+          <div className="flex flex-wrap items-center justify-between gap-2 bg-card/90 px-4 py-3 border-b border-border">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🎬</span>
+              <div>
+                <h3 className="font-display font-bold text-text text-sm sm:text-base leading-tight">
+                  {title}
+                </h3>
+                <p className="text-[11px] text-purple-light">Server: {server === "vidking" ? "Vidking.net (Utama)" : "VidSrc (Cadangan)"}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="flex items-center rounded-lg bg-surface p-1 border border-border">
+                <button
+                  onClick={() => setServer("vidking")}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
+                    server === "vidking" ? "bg-purple text-white shadow-sm" : "text-muted hover:text-text"
+                  }`}
+                >
+                  Vidking
+                </button>
+                <button
+                  onClick={() => setServer("vidsrc")}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
+                    server === "vidsrc" ? "bg-purple text-white shadow-sm" : "text-muted hover:text-text"
+                  }`}
+                >
+                  Backup Server
+                </button>
+              </div>
+
+              <button
+                onClick={onClose}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-surface text-muted hover:text-white hover:bg-red-600/80 transition-all text-sm font-bold"
+                title="Tutup Player"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Iframe Player Container */}
+          <div className="aspect-video w-full bg-black relative">
+            <iframe
+              src={streamUrl}
+              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+              allowFullScreen
+              className="h-full w-full border-0"
+            />
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 function RatingStars({
   value, onChange,
 }: { value: number; onChange: (v: number) => void }) {
@@ -120,6 +201,7 @@ export default function MovieDetailPage() {
   const [hasReminder, setHasReminder] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [trailer, setTrailer] = useState<string | null>(null);
+  const [showStreamPlayer, setShowStreamPlayer] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showRating, setShowRating] = useState(false);
   const [selectedRating, setSelectedRating] = useState(0);
@@ -444,23 +526,22 @@ export default function MovieDetailPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/60 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-bg/80 via-transparent to-transparent" />
 
-        {/* Play trailer button */}
-        {trailerVideo && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <motion.button
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.4, type: "spring", stiffness: 260, damping: 20 }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setTrailer(trailerVideo.key)}
-              className="flex h-18 w-18 items-center justify-center rounded-full bg-white/15 border-2 border-white/30 backdrop-blur-sm text-white text-3xl shadow-2xl hover:bg-white/25 transition-all"
-              style={{ height: 72, width: 72 }}
-            >
-              ▶
-            </motion.button>
-          </div>
-        )}
+        {/* Play Stream button */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.4, type: "spring", stiffness: 260, damping: 20 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowStreamPlayer(true)}
+            className="flex h-18 w-18 items-center justify-center rounded-full bg-purple/90 border-2 border-purple-light/60 backdrop-blur-md text-white text-3xl shadow-[0_0_40px_rgba(147,51,234,0.7)] hover:bg-purple hover:scale-110 transition-all cursor-pointer"
+            style={{ height: 72, width: 72 }}
+            title="Nonton Film Sekarang"
+          >
+            ▶
+          </motion.button>
+        </div>
       </div>
 
       {/* ─── KONTEN ─── */}
@@ -547,8 +628,17 @@ export default function MovieDetailPage() {
               {movie.overview || "Sinopsis tidak tersedia."}
             </p>
 
-            {/* Actions (Watchlist, Reminder & Share Card) */}
+            {/* Actions (Stream, Watchlist, Reminder & Share Card) */}
             <div className="mt-6 flex flex-wrap gap-3">
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setShowStreamPlayer(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-5 py-3 font-display font-semibold text-white shadow-cinema hover:shadow-[0_0_30px_rgba(147,51,234,0.6)] transition-all"
+              >
+                🎬 Nonton Film (Stream)
+              </motion.button>
+
               {isUpcoming && (
                 <motion.button
                   whileHover={{ scale: 1.03 }}
@@ -568,9 +658,9 @@ export default function MovieDetailPage() {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => setTrailer(trailerVideo.key)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-cinema px-5 py-3 font-display font-semibold text-white shadow-cinema"
+                  className="inline-flex items-center gap-2 rounded-xl glass border border-white/10 px-5 py-3 font-display font-semibold text-text hover:bg-purple/10 transition-all"
                 >
-                  ▶ Tonton Trailer
+                  ▶ Trailer
                 </motion.button>
               )}
 
@@ -812,6 +902,15 @@ export default function MovieDetailPage() {
 
       {/* Trailer Modal */}
       {trailer && <TrailerModal videoKey={trailer} onClose={() => setTrailer(null)} />}
+
+      {/* Vidking Stream Player Modal */}
+      {showStreamPlayer && (
+        <StreamPlayerModal
+          movieId={movie.id}
+          title={movie.title}
+          onClose={() => setShowStreamPlayer(false)}
+        />
+      )}
     </div>
   );
 }
