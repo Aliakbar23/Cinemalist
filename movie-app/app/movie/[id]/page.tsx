@@ -61,17 +61,35 @@ function TrailerModal({ videoKey, onClose }: { videoKey: string; onClose: () => 
   );
 }
 
-function StreamPlayerModal({ movieId, title, onClose }: { movieId: number; title: string; onClose: () => void }) {
+interface StreamPlayerModalProps {
+  movieId: number;
+  title: string;
+  mediaType?: "movie" | "tv";
+  season?: number;
+  episode?: number;
+  onClose: () => void;
+}
+
+function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, episode = 1, onClose }: StreamPlayerModalProps) {
   const [server, setServer] = useState<"vidking" | "vidcodin" | "vidsrc">("vidking");
 
-  const streamUrl = server === "vidking" 
-    ? `https://www.vidking.net/embed/movie/${movieId}`
-    : server === "vidcodin"
-    ? `https://vidcodin.net/embed/movie/${movieId}`
-    : `https://vidsrc.cc/v2/embed/movie/${movieId}`;
+  let streamUrl = "";
+  if (mediaType === "tv") {
+    streamUrl = server === "vidking" 
+      ? `https://www.vidking.net/embed/tv/${movieId}/${season}/${episode}?autoPlay=true&nextEpisode=true&episodeSelector=true`
+      : server === "vidcodin"
+      ? `https://vidcodin.net/embed/tv/${movieId}/${season}/${episode}?autoPlay=true`
+      : `https://vidsrc.cc/v2/embed/tv/${movieId}/${season}/${episode}`;
+  } else {
+    streamUrl = server === "vidking" 
+      ? `https://www.vidking.net/embed/movie/${movieId}?autoPlay=true&nextEpisode=true&episodeSelector=true`
+      : server === "vidcodin"
+      ? `https://vidcodin.net/embed/movie/${movieId}?autoPlay=true`
+      : `https://vidsrc.cc/v2/embed/movie/${movieId}`;
+  }
 
   const serverNames: Record<string, string> = {
-    vidking: "Vidking.net (HD Utama)",
+    vidking: "Vidking.net (HD AutoPlay & Selector)",
     vidcodin: "VidCodin.net (HD Multi-Res)",
     vidsrc: "VidSrc (Cadangan)",
   };
@@ -99,7 +117,7 @@ function StreamPlayerModal({ movieId, title, onClose }: { movieId: number; title
               <span className="text-xl">🎬</span>
               <div>
                 <h3 className="font-display font-bold text-text text-sm sm:text-base leading-tight">
-                  {title}
+                  {title} {mediaType === "tv" ? `(S${season} E${episode})` : ""}
                 </h3>
                 <p className="text-[11px] text-purple-light">Server: {serverNames[server]}</p>
               </div>
