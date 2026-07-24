@@ -5,7 +5,7 @@ import { searchMovies, getPopular, getMoviesByMood, type Movie } from "@/lib/api
 import MovieGrid from "@/components/MovieGrid";
 import { MovieGridSkeleton } from "@/components/Skeletons";
 
-const SUGGESTIONS = ["Avengers", "Harry Potter", "Fast Furious", "Spider-Man", "Batman", "Inception", "Interstellar", "John Wick"];
+const SUGGESTIONS = ["Squid Game", "One Piece", "Avengers", "Queen of Tears", "Spider-Man", "Attack on Titan", "Inception", "John Wick"];
 
 const MOODS_MAP: Record<string, { label: string; emoji: string }> = {
   mikir: { label: "Butuh Mikir Keras", emoji: "🧩" },

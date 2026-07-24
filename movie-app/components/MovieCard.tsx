@@ -78,8 +78,15 @@ export default function MovieCard({ movie, index = 0 }: { movie: Movie; index?: 
             <div className="flex h-full items-center justify-center bg-card text-4xl">🎬</div>
           )}
 
-          {/* Overlay gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          {/* Overlay gradient & Play Button */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-1.5">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-purple/90 border border-purple-light/50 text-white text-lg shadow-[0_0_25px_rgba(147,51,234,0.7)] transform scale-75 group-hover:scale-100 transition-transform">
+              ▶
+            </div>
+            <span className="text-[10px] font-bold text-white bg-purple/80 px-2.5 py-0.5 rounded-full shadow-sm backdrop-blur-sm">
+              Nonton HD
+            </span>
+          </div>
 
           {/* Rating badge */}
           <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full glass px-2 py-1">

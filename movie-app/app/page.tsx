@@ -5,12 +5,12 @@ import MovieRow from "@/components/MovieRow";
 
 const GENRES = [
   { id: 28, label: "Aksi", emoji: "💥" },
-  { id: 18, label: "Drama", emoji: "🎭" },
+  { id: 18, label: "Drama Korea", emoji: "🇰🇷" },
+  { id: 16, label: "Anime & Animasi", emoji: "🌸" },
   { id: 35, label: "Komedi", emoji: "😂" },
   { id: 27, label: "Horor", emoji: "👻" },
   { id: 10749, label: "Romantis", emoji: "💕" },
   { id: 878, label: "Sci-Fi", emoji: "🚀" },
-  { id: 16, label: "Animasi", emoji: "✨" },
   { id: 53, label: "Thriller", emoji: "😰" },
 ];
 
@@ -128,21 +128,22 @@ export default async function HomePage() {
         <h2 className="mb-4 font-display text-xl font-bold text-text md:text-2xl">
           🎭 Bagaimana suasana hatimu hari ini?
         </h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
           {[
-            { id: "mikir", label: "Butuh Mikir Keras", emoji: "🧩", color: "from-purple/20 to-purple/5 border-purple/30 text-purple-light" },
-            { id: "santai", label: "Teman Bersantai", emoji: "🍿", color: "from-green-600/20 to-green-600/5 border-green-600/30 text-green-400" },
-            { id: "romantis", label: "Kencan Romantis", emoji: "❤️", color: "from-red-500/20 to-red-500/5 border-red-500/30 text-red-400" },
-            { id: "adrenalin", label: "Pompa Adrenalin", emoji: "⚡", color: "from-orange-500/20 to-orange-500/5 border-orange-500/30 text-orange-400" },
-            { id: "seram", label: "Uji Nyali", emoji: "👻", color: "from-blue-600/20 to-blue-600/5 border-blue-600/30 text-blue-400" },
+            { id: "kdrama", label: "Drama Korea", emoji: "🇰🇷", color: "from-pink-500/20 to-pink-500/5 border-pink-500/30 text-pink-400", href: "/genre/18" },
+            { id: "anime", label: "Anime HD", emoji: "🌸", color: "from-purple/20 to-purple/5 border-purple/30 text-purple-light", href: "/genre/16" },
+            { id: "mikir", label: "Mikir Keras", emoji: "🧩", color: "from-indigo-600/20 to-indigo-600/5 border-indigo-600/30 text-indigo-400", href: "/search?mood=mikir" },
+            { id: "santai", label: "Bersantai", emoji: "🍿", color: "from-green-600/20 to-green-600/5 border-green-600/30 text-green-400", href: "/search?mood=santai" },
+            { id: "adrenalin", label: "Adrenalin", emoji: "⚡", color: "from-orange-500/20 to-orange-500/5 border-orange-500/30 text-orange-400", href: "/search?mood=adrenalin" },
+            { id: "seram", label: "Uji Nyali", emoji: "👻", color: "from-blue-600/20 to-blue-600/5 border-blue-600/30 text-blue-400", href: "/search?mood=seram" },
           ].map((mood) => (
             <Link
               key={mood.id}
-              href={`/search?mood=${mood.id}`}
-              className={`flex flex-col items-center justify-center rounded-2xl border p-5 text-center bg-gradient-to-br ${mood.color} transition-all hover:scale-105 hover:shadow-cinema-sm`}
+              href={mood.href}
+              className={`flex flex-col items-center justify-center rounded-2xl border p-4 text-center bg-gradient-to-br ${mood.color} transition-all hover:scale-105 hover:shadow-cinema-sm`}
             >
-              <span className="text-3xl mb-2">{mood.emoji}</span>
-              <span className="font-display font-bold text-sm text-text">{mood.label}</span>
+              <span className="text-3xl mb-1.5">{mood.emoji}</span>
+              <span className="font-display font-bold text-xs sm:text-sm text-text">{mood.label}</span>
             </Link>
           ))}
         </div>

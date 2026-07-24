@@ -217,6 +217,24 @@ export default function BotPage() {
         </motion.button>
       </div>
 
+      {/* Quick Prompt Chips */}
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide mb-3 pb-1">
+        {[
+          "🇰🇷 Rekomendasikan Drama Korea Romantis Terbaik",
+          "🌸 Rekomendasi Anime Action Populer HD",
+          "🚀 Film Sci-Fi Plot Twist Paling Bagus",
+          "👻 Film Horor Indonesia / Barat Seram",
+        ].map((promptText, i) => (
+          <button
+            key={i}
+            onClick={() => setInput(promptText)}
+            className="flex-shrink-0 rounded-full glass border border-purple/20 px-3 py-1 text-xs text-purple-light hover:bg-purple/10 hover:border-purple/40 transition-all"
+          >
+            {promptText}
+          </button>
+        ))}
+      </div>
+
       {/* Chat Area */}
       <div className="flex-1 overflow-y-auto pr-1 space-y-4 scrollbar-hide">
         {messages.map((msg, index) => (
