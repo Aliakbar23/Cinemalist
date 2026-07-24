@@ -5,8 +5,8 @@ import MovieRow from "@/components/MovieRow";
 
 const GENRES = [
   { id: 28, label: "Aksi", emoji: "💥" },
-  { id: 18, label: "Drama Korea", emoji: "🇰🇷" },
-  { id: 16, label: "Anime & Animasi", emoji: "🌸" },
+  { id: 18, label: "Drama", emoji: "🎭" },
+  { id: 16, label: "Animasi & Anime", emoji: "🌸" },
   { id: 35, label: "Komedi", emoji: "😂" },
   { id: 27, label: "Horor", emoji: "👻" },
   { id: 10749, label: "Romantis", emoji: "💕" },
@@ -130,7 +130,7 @@ export default async function HomePage() {
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
           {[
-            { id: "kdrama", label: "Drama Korea", emoji: "🇰🇷", color: "from-pink-500/20 to-pink-500/5 border-pink-500/30 text-pink-400", href: "/genre/18" },
+            { id: "kdrama", label: "Drakor (K-Drama)", emoji: "🇰🇷", color: "from-pink-500/20 to-pink-500/5 border-pink-500/30 text-pink-400", href: "/search?q=Korean" },
             { id: "anime", label: "Anime HD", emoji: "🌸", color: "from-purple/20 to-purple/5 border-purple/30 text-purple-light", href: "/genre/16" },
             { id: "mikir", label: "Mikir Keras", emoji: "🧩", color: "from-indigo-600/20 to-indigo-600/5 border-indigo-600/30 text-indigo-400", href: "/search?mood=mikir" },
             { id: "santai", label: "Bersantai", emoji: "🍿", color: "from-green-600/20 to-green-600/5 border-green-600/30 text-green-400", href: "/search?mood=santai" },
