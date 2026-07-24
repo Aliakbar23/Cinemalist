@@ -124,6 +124,17 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
             </div>
 
             <div className="flex items-center gap-2">
+              <a
+                href={streamUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 rounded-lg bg-surface border border-purple/30 px-2.5 py-1 text-xs font-semibold text-purple-light hover:bg-purple/10 hover:text-white transition-all shadow-cinema-sm"
+                title="Buka Player Full HD di Tab Baru"
+              >
+                <span>↗️</span>
+                <span className="hidden sm:inline">Full HD (Tab Baru)</span>
+              </a>
+
               <div className="flex flex-wrap items-center rounded-lg bg-surface p-1 border border-border gap-1">
                 <button
                   onClick={() => setServer("vidking")}
@@ -165,8 +176,9 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
           <div className="aspect-video w-full bg-black relative">
             <iframe
               src={streamUrl}
-              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
               allowFullScreen
+              referrerPolicy="origin"
               className="h-full w-full border-0"
             />
           </div>
