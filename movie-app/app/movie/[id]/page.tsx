@@ -73,6 +73,17 @@ interface StreamPlayerModalProps {
 function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, episode = 1, onClose }: StreamPlayerModalProps) {
   const [server, setServer] = useState<"vidlink" | "vidking" | "vidcodin" | "vidsrc">("vidlink");
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const originalOpen = window.open;
+    window.open = function () {
+      return null;
+    };
+    return () => {
+      window.open = originalOpen;
+    };
+  }, []);
+
   let streamUrl = "";
   if (mediaType === "tv") {
     streamUrl = server === "vidlink"
@@ -179,7 +190,6 @@ function StreamPlayerModal({ movieId, title, mediaType = "movie", season = 1, ep
             <iframe
               src={streamUrl}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
               allowFullScreen
               referrerPolicy="origin"
               className="h-full w-full border-0"
