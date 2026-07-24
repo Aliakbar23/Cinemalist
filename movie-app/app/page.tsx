@@ -128,22 +128,21 @@ export default async function HomePage() {
         <h2 className="mb-4 font-display text-xl font-bold text-text md:text-2xl">
           🎭 Bagaimana suasana hatimu hari ini?
         </h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
           {[
-            { id: "kdrama", label: "Drakor (K-Drama)", emoji: "🇰🇷", color: "from-pink-500/20 to-pink-500/5 border-pink-500/30 text-pink-400", href: "/search?q=Korean" },
-            { id: "anime", label: "Anime HD", emoji: "🌸", color: "from-purple/20 to-purple/5 border-purple/30 text-purple-light", href: "/genre/16" },
-            { id: "mikir", label: "Mikir Keras", emoji: "🧩", color: "from-indigo-600/20 to-indigo-600/5 border-indigo-600/30 text-indigo-400", href: "/search?mood=mikir" },
-            { id: "santai", label: "Bersantai", emoji: "🍿", color: "from-green-600/20 to-green-600/5 border-green-600/30 text-green-400", href: "/search?mood=santai" },
-            { id: "adrenalin", label: "Adrenalin", emoji: "⚡", color: "from-orange-500/20 to-orange-500/5 border-orange-500/30 text-orange-400", href: "/search?mood=adrenalin" },
+            { id: "mikir", label: "Butuh Mikir Keras", emoji: "🧩", color: "from-purple/20 to-purple/5 border-purple/30 text-purple-light", href: "/search?mood=mikir" },
+            { id: "santai", label: "Teman Bersantai", emoji: "🍿", color: "from-green-600/20 to-green-600/5 border-green-600/30 text-green-400", href: "/search?mood=santai" },
+            { id: "romantis", label: "Kencan Romantis", emoji: "❤️", color: "from-red-500/20 to-red-500/5 border-red-500/30 text-red-400", href: "/search?mood=romantis" },
+            { id: "adrenalin", label: "Pompa Adrenalin", emoji: "⚡", color: "from-orange-500/20 to-orange-500/5 border-orange-500/30 text-orange-400", href: "/search?mood=adrenalin" },
             { id: "seram", label: "Uji Nyali", emoji: "👻", color: "from-blue-600/20 to-blue-600/5 border-blue-600/30 text-blue-400", href: "/search?mood=seram" },
           ].map((mood) => (
             <Link
               key={mood.id}
               href={mood.href}
-              className={`flex flex-col items-center justify-center rounded-2xl border p-4 text-center bg-gradient-to-br ${mood.color} transition-all hover:scale-105 hover:shadow-cinema-sm`}
+              className={`flex flex-col items-center justify-center rounded-2xl border p-5 text-center bg-gradient-to-br ${mood.color} transition-all hover:scale-105 hover:shadow-cinema-sm`}
             >
-              <span className="text-3xl mb-1.5">{mood.emoji}</span>
-              <span className="font-display font-bold text-xs sm:text-sm text-text">{mood.label}</span>
+              <span className="text-3xl mb-2">{mood.emoji}</span>
+              <span className="font-display font-bold text-sm text-text">{mood.label}</span>
             </Link>
           ))}
         </div>
