@@ -62,11 +62,19 @@ function TrailerModal({ videoKey, onClose }: { videoKey: string; onClose: () => 
 }
 
 function StreamPlayerModal({ movieId, title, onClose }: { movieId: number; title: string; onClose: () => void }) {
-  const [server, setServer] = useState<"vidking" | "vidsrc">("vidking");
+  const [server, setServer] = useState<"vidking" | "vidcodin" | "vidsrc">("vidking");
 
   const streamUrl = server === "vidking" 
     ? `https://www.vidking.net/embed/movie/${movieId}`
+    : server === "vidcodin"
+    ? `https://vidcodin.net/embed/movie/${movieId}`
     : `https://vidsrc.cc/v2/embed/movie/${movieId}`;
+
+  const serverNames: Record<string, string> = {
+    vidking: "Vidking.net (HD Utama)",
+    vidcodin: "VidCodin.net (HD Multi-Res)",
+    vidsrc: "VidSrc (Cadangan)",
+  };
 
   return (
     <AnimatePresence>
@@ -93,19 +101,27 @@ function StreamPlayerModal({ movieId, title, onClose }: { movieId: number; title
                 <h3 className="font-display font-bold text-text text-sm sm:text-base leading-tight">
                   {title}
                 </h3>
-                <p className="text-[11px] text-purple-light">Server: {server === "vidking" ? "Vidking.net (Utama)" : "VidSrc (Cadangan)"}</p>
+                <p className="text-[11px] text-purple-light">Server: {serverNames[server]}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="flex items-center rounded-lg bg-surface p-1 border border-border">
+              <div className="flex flex-wrap items-center rounded-lg bg-surface p-1 border border-border gap-1">
                 <button
                   onClick={() => setServer("vidking")}
                   className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
                     server === "vidking" ? "bg-purple text-white shadow-sm" : "text-muted hover:text-text"
                   }`}
                 >
-                  Vidking
+                  Vidking HD
+                </button>
+                <button
+                  onClick={() => setServer("vidcodin")}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
+                    server === "vidcodin" ? "bg-purple text-white shadow-sm" : "text-muted hover:text-text"
+                  }`}
+                >
+                  VidCodin HD
                 </button>
                 <button
                   onClick={() => setServer("vidsrc")}
@@ -113,7 +129,7 @@ function StreamPlayerModal({ movieId, title, onClose }: { movieId: number; title
                     server === "vidsrc" ? "bg-purple text-white shadow-sm" : "text-muted hover:text-text"
                   }`}
                 >
-                  Backup Server
+                  Backup
                 </button>
               </div>
 
