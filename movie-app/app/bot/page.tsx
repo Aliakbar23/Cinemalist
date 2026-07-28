@@ -11,25 +11,6 @@ interface Message {
   movies?: { movie: Movie; reason: string }[];
 }
 
-const SYSTEM_PROMPT = `
-Kamu adalah CineBot, asisten rekomendasi film AI yang cerdas, ahli, dan ceria.
-Tugas kamu adalah membantu pengguna menemukan film menarik yang relevan dengan pertanyaan, mood, atau preferensi mereka.
-
-Kamu WAJIB mengembalikan respon hanya dalam format JSON Array terstruktur tanpa markdown wrapper (\`\`\`json ... \`\`\`).
-Format JSON harus berupa Array dari objek dengan properti berikut:
-1. Jika pengguna meminta rekomendasi film atau membagikan mood nonton:
-   Kembalikan daftar film rekomendasi:
-   - "title": (string) Judul film dalam bahasa Inggris (agar pencarian TMDB akurat)
-   - "reason": (string) Penjelasan singkat, emosional, dan ceria dalam bahasa Indonesia kenapa merekomendasikan film ini.
-   Maksimal berikan 4 rekomendasi film dalam satu respon.
-
-2. Jika pengguna hanya menyapa (seperti 'Halo', 'p', 'hi'), mengobrol santai, atau bertanya hal umum non-film:
-   Kembalikan balasan teks biasa:
-   - "chatResponse": (string) Jawaban santai Anda dalam bahasa Indonesia yang bersahabat dan ceria, lalu tawarkan bantuan mencari film.
-   - "title": "" (kosongkan)
-   - "reason": "" (kosongkan)
-`;
-
 export default function BotPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -39,14 +20,15 @@ export default function BotPage() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [apiKey, setApiKey] = useState("");
+  const [customKey, setCustomKey] = useState("");
+  const [hasServerKey, setHasServerKey] = useState(true); // assume server key exists
   const [showKeyModal, setShowKeyModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Ambil API Key dari localStorage jika ada, jika tidak pakai env
-    const savedKey = localStorage.getItem("gemini_api_key") || process.env.NEXT_PUBLIC_GEMINI_KEY || "";
-    setApiKey(savedKey);
+    // Load custom user key from localStorage if previously saved
+    const savedKey = localStorage.getItem("gemini_api_key") || "";
+    setCustomKey(savedKey);
   }, []);
 
   useEffect(() => {
@@ -55,8 +37,12 @@ export default function BotPage() {
 
   const handleSaveKey = (key: string) => {
     const trimmed = key.trim();
-    setApiKey(trimmed);
-    localStorage.setItem("gemini_api_key", trimmed);
+    setCustomKey(trimmed);
+    if (trimmed) {
+      localStorage.setItem("gemini_api_key", trimmed);
+    } else {
+      localStorage.removeItem("gemini_api_key");
+    }
     setShowKeyModal(false);
   };
 
@@ -69,65 +55,57 @@ export default function BotPage() {
     setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setLoading(true);
 
-    if (!apiKey) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "bot",
-          content: "Oops! API Key Gemini belum dipasang. Klik tombol pengaturan ⚙️ di pojok kanan atas untuk memasang API Key Google AI Studio gratis agar aku bisa bekerja!",
-        },
-      ]);
-      setLoading(false);
-      return;
-    }
-
     try {
-      // 1. Kirim prompt percakapan ke Gemini
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  { text: SYSTEM_PROMPT },
-                  ...messages.map((m) => ({
-                    text: `${m.role === "user" ? "Pengguna" : "CineBot"}: ${m.content}`,
-                  })),
-                  { text: `Pengguna: ${userMessage}` },
-                ],
-              },
-            ],
-            generationConfig: {
-              responseMimeType: "application/json",
-            },
-          }),
-        }
-      );
+      // Call the server-side API route (key is safe on server)
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: messages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+          userMessage,
+          // Only send custom key if user explicitly set one
+          ...(customKey ? { customKey } : {}),
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error("Gagal menghubungi Gemini API");
+        const errData = await response.json().catch(() => ({}));
+        
+        // If 500 with no key configured, server has no GEMINI_KEY
+        if (response.status === 500 && !customKey) {
+          setHasServerKey(false);
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "bot",
+              content: "Oops! API Key Gemini belum dikonfigurasi di server. Klik tombol pengaturan ⚙️ di pojok kanan atas untuk memasang API Key Google AI Studio gratis agar aku bisa bekerja!",
+            },
+          ]);
+          setLoading(false);
+          return;
+        }
+
+        throw new Error(errData.error || "Gagal menghubungi CineBot API");
       }
 
       const resData = await response.json();
-      const rawText = resData.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
-      
-      // 2. Parse hasil JSON dari Gemini
+      const rawText = resData.result || "[]";
+
+      // Parse JSON response from Gemini
       const jsonRes = JSON.parse(rawText.trim());
 
-      // 3. Cek tipe respon (obrolan biasa atau rekomendasi film)
+      // Check response type (chat or movie recommendations)
       if (Array.isArray(jsonRes)) {
         const isChat = jsonRes.some((item) => item.chatResponse);
-        
+
         if (isChat) {
           const chatMsg = jsonRes.find((item) => item.chatResponse)?.chatResponse || "Ada yang bisa kubantu tentang film?";
           setMessages((prev) => [...prev, { role: "bot", content: chatMsg }]);
         } else {
-          // Cari detail film TMDB untuk setiap rekomendasi
+          // Search TMDB for each recommendation
           const moviePromises = jsonRes.map(async (rec: { title: string; reason: string }) => {
             if (!rec.title) return null;
             try {
@@ -183,13 +161,15 @@ export default function BotPage() {
         ...prev,
         {
           role: "bot",
-          content: "Terjadi kesalahan koneksi atau API Key Anda salah. Pastikan API Key valid dan coba kirim kembali.",
+          content: "Terjadi kesalahan koneksi atau API Key salah. Pastikan API Key valid dan coba kirim kembali.",
         },
       ]);
     } finally {
       setLoading(false);
     }
   };
+
+  const isReady = hasServerKey || !!customKey;
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] max-w-4xl mx-auto px-4 py-4 md:py-6">
@@ -204,7 +184,7 @@ export default function BotPage() {
             <p className="text-xs text-muted">Asisten film pintar bertenaga Gemini 2.5</p>
           </div>
         </div>
-        
+
         {/* Settings button */}
         <motion.button
           whileHover={{ scale: 1.05, rotate: 30 }}
@@ -275,7 +255,7 @@ export default function BotPage() {
                           <div className="flex h-full items-center justify-center text-xl bg-surface">🎬</div>
                         )}
                       </Link>
-                      
+
                       {/* Content */}
                       <div className="flex-1 min-w-0 flex flex-col justify-between">
                         <div>
@@ -314,17 +294,17 @@ export default function BotPage() {
       <form onSubmit={handleSendMessage} className="mt-4 flex gap-2 relative">
         <input
           type="text"
-          placeholder={apiKey ? "Tanyakan rekomendasi film..." : "Masukkan API Key di pengaturan untuk memulai..."}
+          placeholder={isReady ? "Tanyakan rekomendasi film..." : "Masukkan API Key di pengaturan untuk memulai..."}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          disabled={!apiKey || loading}
+          disabled={!isReady || loading}
           className="flex-1 rounded-2xl bg-surface border border-border px-4 py-4 text-text text-sm outline-none focus:border-purple/60 focus:ring-2 focus:ring-purple/20 transition-all placeholder:text-muted disabled:opacity-50"
         />
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           type="submit"
-          disabled={!apiKey || !input.trim() || loading}
+          disabled={!isReady || !input.trim() || loading}
           className="rounded-2xl bg-cinema text-white font-semibold font-display px-6 py-4 transition-all shadow-cinema hover:shadow-[0_0_40px_rgba(124,58,237,0.5)] disabled:opacity-50 flex items-center gap-1"
         >
           Kirim 🚀
@@ -347,8 +327,12 @@ export default function BotPage() {
               className="card p-6 w-full max-w-md"
             >
               <h2 className="font-display font-black text-text text-lg mb-2">🔑 Pengaturan API Key</h2>
+              <p className="text-xs text-muted mb-1 leading-relaxed">
+                CineBot menggunakan API Key Gemini yang dikonfigurasi di server secara default.
+                Jika kamu ingin menggunakan API Key pribadi, tempelkan di bawah ini.
+              </p>
               <p className="text-xs text-muted mb-4 leading-relaxed">
-                CineBot membutuhkan API Key Google Gemini. Dapatkan kunci gratis Anda dalam 1 menit di{" "}
+                Dapatkan kunci gratis di{" "}
                 <a
                   href="https://aistudio.google.com/"
                   target="_blank"
@@ -356,17 +340,24 @@ export default function BotPage() {
                   className="text-purple-light hover:underline font-semibold"
                 >
                   Google AI Studio
-                </a>{" "}
-                lalu tempelkan di bawah ini.
+                </a>
+                . Kosongkan untuk menggunakan key default server.
               </p>
-              
+
               <input
                 type="password"
-                placeholder="Tempel API Key AI Studio disini..."
-                defaultValue={apiKey}
+                placeholder="Tempel API Key AI Studio disini (opsional)..."
+                defaultValue={customKey}
                 id="api-key-input"
-                className="w-full rounded-xl bg-surface border border-border px-4 py-3 text-text text-sm outline-none focus:border-purple/60 placeholder:text-muted mb-6"
+                className="w-full rounded-xl bg-surface border border-border px-4 py-3 text-text text-sm outline-none focus:border-purple/60 placeholder:text-muted mb-2"
               />
+
+              {customKey && (
+                <p className="text-[11px] text-green-400 mb-4">✓ Menggunakan API Key pribadi kamu</p>
+              )}
+              {!customKey && (
+                <p className="text-[11px] text-muted mb-4">ℹ Menggunakan API Key default server</p>
+              )}
 
               <div className="flex items-center justify-end gap-2 text-sm font-semibold">
                 <button

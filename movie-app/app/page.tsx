@@ -22,7 +22,7 @@ export default async function HomePage() {
     getUpcoming(),
   ]);
 
-  const heroItem = trending.results[0];
+  const heroItem = trending.results?.[0] ?? null;
   let hero = heroItem;
   if (heroItem) {
     try {
@@ -31,6 +31,13 @@ export default async function HomePage() {
     } catch (e) {
       console.error("Failed to fetch hero movie details:", e);
     }
+  }
+  if (!hero) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-muted">
+        Memuat film trending...
+      </div>
+    );
   }
   const heroBackdrop = hero.backdrop_path
     ? `https://image.tmdb.org/t/p/original${hero.backdrop_path}`
