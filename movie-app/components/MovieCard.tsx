@@ -6,14 +6,15 @@ import { motion } from "framer-motion";
 import { posterUrl, year, rating, type Movie } from "@/lib/api";
 import { getWatchlistItem, addToWatchlist, removeFromWatchlist } from "@/lib/db";
 
-function StarRating({ score }: { score: number }) {
-  const stars = Math.round(score / 2);
+function StarRating({ score }: { score: number | undefined | null }) {
+  const safeScore = score ?? 0;
+  const stars = Math.round(safeScore / 2);
   return (
     <div className="flex items-center gap-1">
       {[1,2,3,4,5].map((s) => (
         <span key={s} className={`text-[10px] ${s <= stars ? "text-gold" : "text-border"}`}>★</span>
       ))}
-      <span className="text-xs text-muted ml-1">{rating(score)}</span>
+      <span className="text-xs text-muted ml-1">{rating(safeScore)}</span>
     </div>
   );
 }
@@ -43,7 +44,7 @@ export default function MovieCard({ movie, index = 0 }: { movie: Movie; index?: 
         posterPath: movie.poster_path,
         backdropPath: movie.backdrop_path,
         releaseDate: movie.release_date,
-        voteAverage: movie.vote_average,
+        voteAverage: movie.vote_average ?? 0,
         overview: movie.overview,
         status: "want",
       });

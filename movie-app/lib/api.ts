@@ -90,23 +90,35 @@ export interface PageResult<T> {
 
 // ---- Endpoints ----
 
-export const getTrending = () =>
-  tmdb<PageResult<Movie>>("/trending/movie/week");
+export const getTrending = async () => {
+  const data = await tmdb<PageResult<Movie>>("/trending/movie/week");
+  return { ...data, results: sanitizeMovies(data.results) };
+};
 
-export const getNowPlaying = () =>
-  tmdb<PageResult<Movie>>("/movie/now_playing");
+export const getNowPlaying = async () => {
+  const data = await tmdb<PageResult<Movie>>("/movie/now_playing");
+  return { ...data, results: sanitizeMovies(data.results) };
+};
 
-export const getTopRated = () =>
-  tmdb<PageResult<Movie>>("/movie/top_rated");
+export const getTopRated = async () => {
+  const data = await tmdb<PageResult<Movie>>("/movie/top_rated");
+  return { ...data, results: sanitizeMovies(data.results) };
+};
 
-export const getUpcoming = () =>
-  tmdb<PageResult<Movie>>("/movie/upcoming");
+export const getUpcoming = async () => {
+  const data = await tmdb<PageResult<Movie>>("/movie/upcoming");
+  return { ...data, results: sanitizeMovies(data.results) };
+};
 
-export const getPopular = () =>
-  tmdb<PageResult<Movie>>("/movie/popular");
+export const getPopular = async () => {
+  const data = await tmdb<PageResult<Movie>>("/movie/popular");
+  return { ...data, results: sanitizeMovies(data.results) };
+};
 
-export const searchMovies = (query: string, page = "1") =>
-  tmdb<PageResult<Movie>>("/search/movie", { query, page });
+export const searchMovies = async (query: string, page = "1") => {
+  const data = await tmdb<PageResult<Movie>>("/search/movie", { query, page });
+  return { ...data, results: sanitizeMovies(data.results) };
+};
 
 export const getMovieDetail = async (id: number): Promise<MovieDetail> => {
   const m = await tmdb<MovieDetail>(`/movie/${id}`);
@@ -130,18 +142,22 @@ export const getMovieCredits = (id: number) =>
 export const getMovieVideos = (id: number) =>
   tmdb<{ results: Video[] }>(`/movie/${id}/videos`);
 
-export const getSimilar = (id: number) =>
-  tmdb<PageResult<Movie>>(`/movie/${id}/similar`);
+export const getSimilar = async (id: number) => {
+  const data = await tmdb<PageResult<Movie>>(`/movie/${id}/similar`);
+  return { ...data, results: sanitizeMovies(data.results) };
+};
 
 export const getGenres = () =>
   tmdb<{ genres: Genre[] }>("/genre/movie/list");
 
-export const getByGenre = (genreId: string, page = "1") =>
-  tmdb<PageResult<Movie>>("/discover/movie", {
+export const getByGenre = async (genreId: string, page = "1") => {
+  const data = await tmdb<PageResult<Movie>>("/discover/movie", {
     with_genres: genreId,
     sort_by: "popularity.desc",
     page,
   });
+  return { ...data, results: sanitizeMovies(data.results) };
+};
 
 const MOOD_GENRES: Record<string, string> = {
   mikir: "878,9648,53",    // Sci-Fi, Mystery, Thriller
@@ -151,34 +167,41 @@ const MOOD_GENRES: Record<string, string> = {
   seram: "27,9648",        // Horror, Mystery
 };
 
-export const getMoviesByMood = (moodId: string, page = "1") => {
+export const getMoviesByMood = async (moodId: string, page = "1") => {
   const genres = MOOD_GENRES[moodId] || "";
-  return tmdb<PageResult<Movie>>("/discover/movie", {
+  const data = await tmdb<PageResult<Movie>>("/discover/movie", {
     with_genres: genres,
     sort_by: "popularity.desc",
     page,
   });
+  return { ...data, results: sanitizeMovies(data.results) };
 };
 
 // ---- Helpers ----
+
+function sanitizeMovies(movies: Movie[]): Movie[] {
+  return movies.filter((m) => m && m.id && m.title);
+}
 
 export function posterUrl(path: string | null, size: "w500" | "w780" | "original" = "w500") {
   if (!path) return null;
   return `${IMG_BASE}/${size}${path}`;
 }
 
-export function year(date: string) {
+export function year(date?: string | null) {
   return date ? date.split("-")[0] : "—";
 }
 
-export function rating(vote: number) {
-  return vote.toFixed(1);
+export function rating(vote: number | undefined | null) {
+  const n = Number(vote);
+  return (Number.isFinite(n) ? n : 0).toFixed(1);
 }
 
-export function runtime(min: number) {
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return h > 0 ? `${h}j ${m}m` : `${m}m`;
+export function runtime(min?: number | null) {
+  const m = min ?? 0;
+  const h = Math.floor(m / 60);
+  const mins = m % 60;
+  return h > 0 ? `${h}j ${mins}m` : `${mins}m`;
 }
 
 export const GENRE_MAP: Record<number, string> = {

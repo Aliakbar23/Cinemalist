@@ -339,7 +339,7 @@ export default function MovieDetailPage() {
         posterPath: movie.poster_path,
         backdropPath: movie.backdrop_path,
         releaseDate: movie.release_date,
-        voteAverage: movie.vote_average,
+        voteAverage: movie.vote_average ?? 0,
         overview: movie.overview,
         status,
       };
@@ -374,7 +374,7 @@ export default function MovieDetailPage() {
       posterPath: movie.poster_path,
       backdropPath: movie.backdrop_path,
       releaseDate: movie.release_date,
-      voteAverage: movie.vote_average,
+      voteAverage: movie.vote_average ?? 0,
       overview: movie.overview,
       status: "want",
       userRating: selectedRating,
@@ -500,7 +500,7 @@ export default function MovieDetailPage() {
 
         ctx.fillStyle = "#8E7F98";
         ctx.font = "600 32px Inter, sans-serif";
-        const details = `${year(movie.release_date)} · ${movie.genres.map((g) => g.name).slice(0, 3).join(", ")}`;
+        const details = `${year(movie.release_date)} · ${movie.genres?.map((g) => g.name).slice(0, 3).join(", ") || ""}`;
         ctx.fillText(details, 540, 1160);
 
         // 4. Rating Personal
@@ -655,13 +655,13 @@ export default function MovieDetailPage() {
               <div className="flex items-center gap-1.5 rounded-full bg-gold/20 border border-gold/30 px-3 py-1">
                 <span className="text-gold">★</span>
                 <span className="font-bold text-gold">{rating(movie.vote_average)}</span>
-                <span className="text-gold/60 text-xs">({movie.vote_count.toLocaleString()})</span>
+                <span className="text-gold/60 text-xs">({(movie.vote_count ?? 0).toLocaleString()})</span>
               </div>
               <span className="text-soft text-sm">{year(movie.release_date)}</span>
               {movie.runtime > 0 && (
                 <span className="text-soft text-sm">⏱ {runtime(movie.runtime)}</span>
               )}
-              {movie.genres.map((g) => (
+              {movie.genres?.map((g) => (
                 <Link
                   key={g.id}
                   href={`/genre/${g.id}`}
@@ -949,8 +949,8 @@ export default function MovieDetailPage() {
               { label: "Rating TMDB", value: `${rating(movie.vote_average)}/10` },
               { label: "Bahasa", value: movie.spoken_languages?.[0]?.english_name ?? "—" },
               { label: "Negara", value: movie.production_countries?.[0]?.name ?? "—" },
-              { label: "Budget", value: movie.budget > 0 ? `$${(movie.budget / 1e6).toFixed(0)}M` : "—" },
-              { label: "Pendapatan", value: movie.revenue > 0 ? `$${(movie.revenue / 1e6).toFixed(0)}M` : "—" },
+              { label: "Budget", value: movie.budget && movie.budget > 0 ? `$${(movie.budget / 1e6).toFixed(0)}M` : "—" },
+              { label: "Pendapatan", value: movie.revenue && movie.revenue > 0 ? `$${(movie.revenue / 1e6).toFixed(0)}M` : "—" },
             ].map((item) => (
               <div key={item.label} className="card p-3">
                 <p className="text-xs text-muted">{item.label}</p>

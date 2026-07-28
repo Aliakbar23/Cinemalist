@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], weight: ["400","500","600","700","800","900"], variable: "--font-outfit" });
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
   other: {
     "mobile-web-app-capable": "yes",
     "format-detection": "telephone=no",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
   },
 };
 export const viewport: Viewport = {
@@ -45,7 +47,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${inter.variable} ${outfit.variable} bg-bg text-text antialiased`}>
         <Navbar />
-        <main className="min-h-screen pt-16">{children}</main>
+        <main className="min-h-screen pt-16">
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </main>
       </body>
     </html>
   );
