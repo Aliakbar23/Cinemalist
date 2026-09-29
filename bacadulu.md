@@ -119,6 +119,6 @@ Bagian ini harus selalu diperbarui oleh AI setelah melakukan modifikasi pada kod
 ### 📅 3 Juli 2026 (Pembaruan Pertama)
 * **Pembaruan:** Inisialisasi konfigurasi API Key TMDB.
 * **Tindakan:**
-  1. Membuat file `movie-app/.env.local` berisi API Key TMDB (`13ceb71f40890f4d165ea612f7c2464b`) dan API Read Access Token.
+  1. Membuat file `movie-app/.env.local` berisi API Key TMDB dan API Read Access Token.
   2. Membuat dokumen panduan awal `bacadulu.md` agar AI dapat langsung memahami arsitektur proyek di masa depan secara instan.
 * **Status:** Aplikasi siap dijalankan secara lokal (`npm run dev`).
