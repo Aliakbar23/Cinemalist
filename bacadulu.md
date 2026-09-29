@@ -84,7 +84,7 @@ interface WatchlistItem {
 ## 🌐 Integrasi API TMDB
 
 Seluruh fetch data dilakukan melalui fungsi helper terpusat di [api.ts](file:///c:/Users/user/Downloads/cinevault-pwa/movie-app/lib/api.ts).
-* URL API: `https://api.themoviedb.org/3`
+* URL API: 
 * Bahasa Default: `id-ID` (Bahasa Indonesia untuk judul dan sinopsis jika tersedia).
 * Revalidasi Data: Data di-cache oleh Next.js selama 3600 detik (1 jam) untuk optimasi performa.
 
