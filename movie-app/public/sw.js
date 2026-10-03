@@ -3,7 +3,7 @@
 // Offline caching + TMDB image CDN cache + notification handling
 // ============================================================
 
-const CACHE_NAME = "cinevault-v1";
+const CACHE_NAME = "cinevault-v2";
 const STATIC_ASSETS = [
   "/",
   "/icon-192.png",

@@ -37,6 +37,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (userMessage.length > 800) {
+      return NextResponse.json(
+        { error: "Pesan terlalu panjang (maksimal 800 karakter)." },
+        { status: 400 }
+      );
+    }
+
     // 2. Determine API key — custom user key takes priority, then server env
     const apiKey = customKey || process.env.GEMINI_KEY;
 
@@ -47,16 +54,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Build conversation history for Gemini
-    const conversationParts = [
-      { text: SYSTEM_PROMPT },
-      ...(Array.isArray(messages)
-        ? messages.map((m: { role: string; content: string }) => ({
-            text: `${m.role === "user" ? "Pengguna" : "CineBot"}: ${m.content}`,
-          }))
-        : []),
-      { text: `Pengguna: ${userMessage}` },
+    // 3. Build conversation history for Gemini with proper role alternation
+    const contents: { role: string; parts: { text: string }[] }[] = [
+      { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
+      { role: "model", parts: [{ text: "Siap! Aku CineBot, asisten film AI yang siap membantu rekomendasi film untukmu." }] },
     ];
+
+    if (Array.isArray(messages)) {
+      // Limit conversation history to last 10 messages to avoid token blowup
+      const recentMessages = messages.slice(-10);
+      for (const m of recentMessages) {
+        if (m && m.role && m.content) {
+          contents.push({
+            role: m.role === "user" ? "user" : "model",
+            parts: [{ text: String(m.content).slice(0, 500) }],
+          });
+        }
+      }
+    }
+
+    contents.push({ role: "user", parts: [{ text: userMessage }] });
 
     // 4. Call Gemini API (server-side — key never reaches client)
     const response = await fetch(
@@ -65,7 +82,7 @@ export async function POST(req: NextRequest) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{ parts: conversationParts }],
+          contents,
           generationConfig: { responseMimeType: "application/json" },
         }),
       }
@@ -81,8 +98,12 @@ export async function POST(req: NextRequest) {
     }
 
     const resData = await response.json();
-    const rawText =
-      resData.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+    let rawText = (resData.candidates?.[0]?.content?.parts?.[0]?.text || "[]").trim();
+    if (rawText.startsWith("```json")) {
+      rawText = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+    } else if (rawText.startsWith("```")) {
+      rawText = rawText.replace(/^```\s*/, "").replace(/\s*```$/, "");
+    }
 
     return NextResponse.json({ result: rawText });
   } catch (err) {

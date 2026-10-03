@@ -1,10 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   getAllWatchlist, getWatchlistStats, removeFromWatchlist, updateStatus,
+  exportWatchlistData, importWatchlistData,
   type WatchlistItem, type WatchStatus,
 } from "@/lib/db";
 import { posterUrl, year, rating } from "@/lib/api";
@@ -109,6 +110,7 @@ export default function WatchlistPage() {
   const [stats, setStats] = useState({ total: 0, want: 0, watching: 0, done: 0, avgRating: 0 });
   const [sort, setSort] = useState<"addedAt" | "title" | "rating">("addedAt");
   const [showAchievements, setShowAchievements] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     const all = await getAllWatchlist();
@@ -117,6 +119,46 @@ export default function WatchlistPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  const handleExport = async () => {
+    try {
+      const dataStr = await exportWatchlistData();
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `cinevault_backup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate([20, 40, 20]);
+      }
+    } catch (e) {
+      console.error("Export error:", e);
+      alert("Gagal mencadangkan data watchlist.");
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const res = await importWatchlistData(text);
+      await load();
+      alert(`Berhasil memulihkan ${res.imported} film ke Watchlist kamu!`);
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate([20, 50, 20]);
+      }
+    } catch (err: any) {
+      console.error("Import error:", err);
+      alert("File cadangan tidak valid atau rusak: " + (err.message || "Error"));
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
 
   const filtered = items
     .filter((i) => tab === "all" || i.status === tab)
@@ -213,17 +255,44 @@ export default function WatchlistPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h1 className="font-display text-3xl font-black text-text md:text-4xl">🎬 Watchlist Saya</h1>
           
-          {/* Toggle Achievements */}
-          <button
-            onClick={() => setShowAchievements(!showAchievements)}
-            className="flex items-center gap-2 rounded-xl bg-card border border-border px-4 py-2 text-sm text-soft hover:text-text hover:border-purple/50 transition-all w-max"
-          >
-            <span>🏆</span>
-            <span>Lencana Prestasi</span>
-            <span className="rounded-full bg-purple/10 px-2 py-0.5 text-xs text-purple-light font-bold">
-              {unlockedCount}/{achievements.length}
-            </span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Backup & Restore Buttons */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImport}
+              accept=".json"
+              className="hidden"
+            />
+            <button
+              onClick={handleExport}
+              title="Cadangkan watchlist ke file JSON"
+              className="flex items-center gap-1.5 rounded-xl bg-card border border-border px-3 py-2 text-xs font-semibold text-soft hover:text-text hover:border-purple/50 transition-all"
+            >
+              <span>💾</span>
+              <span>Cadangkan</span>
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              title="Pulihkan watchlist dari file JSON cadangan"
+              className="flex items-center gap-1.5 rounded-xl bg-card border border-border px-3 py-2 text-xs font-semibold text-soft hover:text-text hover:border-purple/50 transition-all"
+            >
+              <span>📂</span>
+              <span>Pulihkan</span>
+            </button>
+
+            {/* Toggle Achievements */}
+            <button
+              onClick={() => setShowAchievements(!showAchievements)}
+              className="flex items-center gap-2 rounded-xl bg-card border border-border px-3.5 py-2 text-xs font-semibold text-soft hover:text-text hover:border-purple/50 transition-all"
+            >
+              <span>🏆</span>
+              <span>Prestasi</span>
+              <span className="rounded-full bg-purple/10 px-2 py-0.5 text-xs text-purple-light font-bold">
+                {unlockedCount}/{achievements.length}
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Panel Achievements (Collapse/Expand) */}
@@ -309,11 +378,11 @@ export default function WatchlistPage() {
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as typeof sort)}
-            className="ml-auto flex-shrink-0 rounded-xl glass border border-white/5 px-3 py-2 text-sm text-soft bg-transparent outline-none"
+            className="ml-auto flex-shrink-0 rounded-xl glass border border-white/10 px-3 py-2 text-sm text-text bg-card outline-none cursor-pointer"
           >
-            <option value="addedAt">Terbaru</option>
-            <option value="title">A–Z</option>
-            <option value="rating">Rating</option>
+            <option value="addedAt" className="bg-card text-text">Terbaru</option>
+            <option value="title" className="bg-card text-text">A–Z</option>
+            <option value="rating" className="bg-card text-text">Rating</option>
           </select>
         </div>
       </motion.div>

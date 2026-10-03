@@ -92,10 +92,29 @@ export default function BotPage() {
       }
 
       const resData = await response.json();
-      const rawText = resData.result || "[]";
+      let rawText = (resData.result || "[]").trim();
+      if (rawText.startsWith("```json")) {
+        rawText = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      } else if (rawText.startsWith("```")) {
+        rawText = rawText.replace(/^```\s*/, "").replace(/\s*```$/, "");
+      }
 
       // Parse JSON response from Gemini
-      const jsonRes = JSON.parse(rawText.trim());
+      let jsonRes: any = [];
+      try {
+        jsonRes = JSON.parse(rawText.trim());
+      } catch (parseErr) {
+        console.error("JSON parse error:", parseErr, rawText);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "bot",
+            content: "Maaf, respon AI sedikit tidak teratur. Bisakah kamu mengulang pertanyaanmu?",
+          },
+        ]);
+        setLoading(false);
+        return;
+      }
 
       // Check response type (chat or movie recommendations)
       if (Array.isArray(jsonRes)) {

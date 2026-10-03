@@ -282,20 +282,26 @@ export default function MovieDetailPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [m, credits, vids, sim, wi, rem] = await Promise.all([
-        getMovieDetail(movieId),
-        getMovieCredits(movieId),
-        getMovieVideos(movieId),
-        getSimilar(movieId),
-        getWatchlistItem(movieId),
-        getReminder(movieId),
-      ]);
+      // 1. Load primary movie detail
+      const m = await getMovieDetail(movieId);
       setMovie(m);
-      setCast(credits.cast.slice(0, 12));
-      setVideos(vids.results);
-      setSimilar(sim.results.slice(0, 14));
+
+      // 2. Load secondary data gracefully without blocking the page if one fails
+      const [creditsRes, vidsRes, simRes, wi, rem] = await Promise.all([
+        getMovieCredits(movieId).catch(() => ({ cast: [] })),
+        getMovieVideos(movieId).catch(() => ({ results: [] })),
+        getSimilar(movieId).catch(() => ({ results: [] })),
+        getWatchlistItem(movieId).catch(() => null),
+        getReminder(movieId).catch(() => null),
+      ]);
+
+      setCast(creditsRes.cast ? creditsRes.cast.slice(0, 12) : []);
+      setVideos(vidsRes.results || []);
+      setSimilar(simRes.results ? simRes.results.slice(0, 14) : []);
       setWatchItem(wi ?? null);
       setHasReminder(!!rem);
+    } catch (err) {
+      console.error("Failed to load movie details:", err);
     } finally {
       setLoading(false);
     }
@@ -549,13 +555,18 @@ export default function MovieDetailPage() {
   const downloadCard = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const url = canvas.toDataURL("image/png");
-    const link = document.createElement("a");
-    link.download = `${movie?.title.replace(/\s+/g, "_")}_CineVaultCard.png`;
-    link.href = url;
-    link.click();
-    if (typeof navigator !== "undefined" && navigator.vibrate) {
-      navigator.vibrate([20, 40, 20]);
+    try {
+      const url = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.download = `${(movie?.title || "CineVault").replace(/\s+/g, "_")}_CineVaultCard.png`;
+      link.href = url;
+      link.click();
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate([20, 40, 20]);
+      }
+    } catch (e) {
+      console.error("Download card error:", e);
+      alert("Browser membatasi ekspor gambar canvas karena kebijakan CORS gambar eksternal.");
     }
   };
 

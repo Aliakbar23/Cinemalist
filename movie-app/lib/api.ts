@@ -12,7 +12,7 @@ export const IMG_W780 = `${IMG_BASE}/w780`;
 export const IMG_ORIGINAL = `${IMG_BASE}/original`;
 
 function getKey() {
-  const key = process.env.NEXT_PUBLIC_TMDB_KEY;
+  const key = process.env.TMDB_KEY || process.env.NEXT_PUBLIC_TMDB_KEY;
   if (!key) throw new Error("TMDB API key tidak ditemukan. Isi NEXT_PUBLIC_TMDB_KEY di .env.local");
   return key;
 }
@@ -90,29 +90,48 @@ export interface PageResult<T> {
 
 // ---- Endpoints ----
 
-export const getTrending = async () => {
-  const data = await tmdb<PageResult<Movie>>("/trending/movie/week");
+export const getTrending = async (page = "1") => {
+  const data = await tmdb<PageResult<Movie>>("/trending/movie/week", { page });
   return { ...data, results: sanitizeMovies(data.results) };
 };
 
-export const getNowPlaying = async () => {
-  const data = await tmdb<PageResult<Movie>>("/movie/now_playing");
+export const getNowPlaying = async (page = "1") => {
+  const data = await tmdb<PageResult<Movie>>("/movie/now_playing", { page });
   return { ...data, results: sanitizeMovies(data.results) };
 };
 
-export const getTopRated = async () => {
-  const data = await tmdb<PageResult<Movie>>("/movie/top_rated");
+export const getTopRated = async (page = "1") => {
+  const data = await tmdb<PageResult<Movie>>("/movie/top_rated", { page });
   return { ...data, results: sanitizeMovies(data.results) };
 };
 
-export const getUpcoming = async () => {
-  const data = await tmdb<PageResult<Movie>>("/movie/upcoming");
+export const getUpcoming = async (page = "1") => {
+  const data = await tmdb<PageResult<Movie>>("/movie/upcoming", { page });
   return { ...data, results: sanitizeMovies(data.results) };
 };
 
-export const getPopular = async () => {
-  const data = await tmdb<PageResult<Movie>>("/movie/popular");
+export const getPopular = async (page = "1") => {
+  const data = await tmdb<PageResult<Movie>>("/movie/popular", { page });
   return { ...data, results: sanitizeMovies(data.results) };
+};
+
+export const getMoviesByCategory = async (category: string, page = "1") => {
+  switch (category.toLowerCase()) {
+    case "trending":
+      return getTrending(page);
+    case "now_playing":
+    case "nowplaying":
+      return getNowPlaying(page);
+    case "top_rated":
+    case "toprated":
+      return getTopRated(page);
+    case "upcoming":
+      return getUpcoming(page);
+    case "popular":
+      return getPopular(page);
+    default:
+      return getTrending(page);
+  }
 };
 
 export const searchMovies = async (query: string, page = "1") => {

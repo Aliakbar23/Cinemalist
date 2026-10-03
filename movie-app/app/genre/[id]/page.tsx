@@ -23,27 +23,42 @@ export default function GenrePage() {
   const [hasMore, setHasMore] = useState(true);
   const [currentGenre, setCurrentGenre] = useState<Genre | null>(null);
 
+  const [loadingMore, setLoadingMore] = useState(false);
+
   useEffect(() => {
     setMovies([]);
     setPage(1);
     setHasMore(true);
     setLoading(true);
 
-    Promise.all([getByGenre(id, "1"), getGenres()]).then(([data, genreData]) => {
-      setMovies(data.results);
-      setHasMore(data.total_pages > 1);
-      setGenres(genreData.genres);
-      setCurrentGenre(genreData.genres.find((g) => g.id === Number(id)) ?? null);
-      setLoading(false);
-    });
+    Promise.all([
+      getByGenre(id, "1").catch(() => ({ results: [], total_pages: 0, page: 1, total_results: 0 })),
+      getGenres().catch(() => ({ genres: [] }))
+    ])
+      .then(([data, genreData]) => {
+        setMovies(data.results);
+        setHasMore(data.total_pages > 1);
+        setGenres(genreData.genres);
+        setCurrentGenre(genreData.genres.find((g) => g.id === Number(id)) ?? null);
+      })
+      .catch((err) => console.error("Error loading genre:", err))
+      .finally(() => setLoading(false));
   }, [id]);
 
   const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
     const next = page + 1;
-    const data = await getByGenre(id, String(next));
-    setMovies((prev) => [...prev, ...data.results]);
-    setPage(next);
-    setHasMore(next < data.total_pages);
+    try {
+      const data = await getByGenre(id, String(next));
+      setMovies((prev) => [...prev, ...data.results]);
+      setPage(next);
+      setHasMore(next < data.total_pages);
+    } catch (err) {
+      console.error("Load more error:", err);
+    } finally {
+      setLoadingMore(false);
+    }
   };
 
   return (
@@ -73,7 +88,7 @@ export default function GenrePage() {
 
       {loading ? (
         <MovieGridSkeleton count={18} />
-      ) : (
+      ) : movies.length > 0 ? (
         <>
           <MovieGrid movies={movies} />
           {hasMore && (
@@ -82,13 +97,20 @@ export default function GenrePage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={loadMore}
-                className="rounded-xl bg-cinema px-8 py-3 font-display font-semibold text-white shadow-cinema"
+                disabled={loadingMore}
+                className="rounded-xl bg-cinema px-8 py-3 font-display font-semibold text-white shadow-cinema disabled:opacity-60 transition-all"
               >
-                Muat Lebih Banyak
+                {loadingMore ? "Memuat..." : "Muat Lebih Banyak"}
               </motion.button>
             </div>
           )}
         </>
+      ) : (
+        <div className="py-20 text-center">
+          <p className="text-5xl mb-4">🎬</p>
+          <p className="text-xl font-display font-bold text-text">Belum ada film untuk genre ini</p>
+          <p className="mt-2 text-muted">Silakan pilih kategori atau genre film lainnya</p>
+        </div>
       )}
     </div>
   );

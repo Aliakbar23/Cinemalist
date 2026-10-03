@@ -1,7 +1,13 @@
-// Monkey-patch fs.readlink / readlinkSync on Windows FAT32 drives where libuv
-// returns EISDIR instead of EINVAL for non-symlinks, causing Webpack to crash.
+// Polyfill for Windows FAT32 filesystems where libuv maps ERROR_NOT_A_REPARSE_POINT to EISDIR
 const fs = require("fs");
+
 if (process.platform === "win32") {
+  const pathMod = require("path");
+  const patchPath = pathMod.resolve(__dirname, "fat32-patch.js").replace(/\\/g, "/");
+  if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes("fat32-patch.js")) {
+    process.env.NODE_OPTIONS = ((process.env.NODE_OPTIONS || "") + ` --require "${patchPath}"`).trim();
+  }
+
   const origReadlink = fs.readlink;
   const origReadlinkSync = fs.readlinkSync;
 
@@ -11,7 +17,7 @@ if (process.platform === "win32") {
       options = {};
     }
     return origReadlink.call(fs, path, options, (err, linkString) => {
-      if (err && (err.code === "EISDIR" || err.code === "UNKNOWN")) {
+      if (err && (err.code === "EISDIR" || err.code === "UNKNOWN" || err.code === "ERR_FS_EISDIR")) {
         const einval = new Error(`EINVAL: invalid argument, readlink '${path}'`);
         einval.code = "EINVAL";
         return callback(einval);
@@ -24,7 +30,7 @@ if (process.platform === "win32") {
     try {
       return origReadlinkSync.call(fs, path, options);
     } catch (err) {
-      if (err && (err.code === "EISDIR" || err.code === "UNKNOWN")) {
+      if (err && (err.code === "EISDIR" || err.code === "UNKNOWN" || err.code === "ERR_FS_EISDIR")) {
         const einval = new Error(`EINVAL: invalid argument, readlink '${path}'`);
         einval.code = "EINVAL";
         throw einval;
@@ -39,7 +45,7 @@ if (process.platform === "win32") {
       try {
         return await origPromisesReadlink.call(fs.promises, path, options);
       } catch (err) {
-        if (err && (err.code === "EISDIR" || err.code === "UNKNOWN")) {
+        if (err && (err.code === "EISDIR" || err.code === "UNKNOWN" || err.code === "ERR_FS_EISDIR")) {
           const einval = new Error(`EINVAL: invalid argument, readlink '${path}'`);
           einval.code = "EINVAL";
           throw einval;
@@ -49,39 +55,3 @@ if (process.platform === "win32") {
     };
   }
 }
-
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "image.tmdb.org",
-        pathname: "/t/p/**",
-      },
-    ],
-    formats: ["image/avif", "image/webp"],
-  },
-  webpack: (config) => {
-    config.resolve.symlinks = false;
-    return config;
-  },
-  poweredByHeader: false,
-  async headers() {
-    return [
-      {
-        source: "/(.*)",
-        headers: [
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(self), geolocation=()",
-          },
-        ],
-      },
-    ];
-  },
-};
-module.exports = nextConfig;

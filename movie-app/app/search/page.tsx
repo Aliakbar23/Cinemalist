@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { searchMovies, getPopular, getMoviesByMood, type Movie } from "@/lib/api";
+import { searchMovies, getPopular, getMoviesByMood, getMoviesByCategory, type Movie } from "@/lib/api";
 import MovieGrid from "@/components/MovieGrid";
 import { MovieGridSkeleton } from "@/components/Skeletons";
 
@@ -15,6 +15,14 @@ const MOODS_MAP: Record<string, { label: string; emoji: string }> = {
   seram: { label: "Uji Nyali", emoji: "👻" },
 };
 
+const CATEGORIES_MAP: Record<string, { title: string; emoji: string }> = {
+  trending: { title: "Sedang Trending Minggu Ini", emoji: "🔥" },
+  now_playing: { title: "Tayang Sekarang di Bioskop", emoji: "🎥" },
+  top_rated: { title: "Film Rating Tertinggi", emoji: "⭐" },
+  upcoming: { title: "Segera Hadir di Bioskop", emoji: "📅" },
+  popular: { title: "Film Populer", emoji: "✨" },
+};
+
 export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Movie[]>([]);
@@ -24,36 +32,72 @@ export default function SearchPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [activeMood, setActiveMood] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   
   const debounceRef = useRef<NodeJS.Timeout>();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    getPopular().then((r) => setPopular(r.results));
+    getPopular().then((r) => setPopular(r.results)).catch(console.error);
     inputRef.current?.focus();
 
-    // Cek query mood saat pertama kali render
+    // Cek query URL saat pertama kali render (mood, category, q)
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
+      const catParam = params.get("category") || params.get("cat");
       const moodParam = params.get("mood");
-      if (moodParam && MOODS_MAP[moodParam]) {
+      const qParam = params.get("q");
+
+      if (catParam && CATEGORIES_MAP[catParam.toLowerCase()]) {
+        const catKey = catParam.toLowerCase();
+        setActiveCategory(catKey);
+        setLoading(true);
+        getMoviesByCategory(catKey, "1")
+          .then((data) => {
+            setResults(data.results);
+            setTotal(data.total_results);
+            setHasMore(data.total_pages > 1);
+          })
+          .catch(console.error)
+          .finally(() => setLoading(false));
+      } else if (moodParam && MOODS_MAP[moodParam]) {
         setActiveMood(moodParam);
         setLoading(true);
-        getMoviesByMood(moodParam).then((data) => {
-          setResults(data.results);
-          setTotal(data.total_results);
-          setHasMore(data.total_pages > 1);
-          setLoading(false);
-        });
+        getMoviesByMood(moodParam)
+          .then((data) => {
+            setResults(data.results);
+            setTotal(data.total_results);
+            setHasMore(data.total_pages > 1);
+          })
+          .catch(console.error)
+          .finally(() => setLoading(false));
+      } else if (qParam) {
+        setQuery(qParam);
       }
     }
   }, []);
 
+  const triggerSearch = async (searchTerm: string) => {
+    if (!searchTerm.trim()) return;
+    setLoading(true);
+    setPage(1);
+    try {
+      const data = await searchMovies(searchTerm, "1");
+      setResults(data.results);
+      setTotal(data.total_results);
+      setHasMore(data.total_pages > 1);
+    } catch (e) {
+      console.error("Search error:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!query.trim()) {
-      // Jika ada activeMood dan query dihapus, jangan kosongkan hasil
-      if (activeMood) return;
+      // Jika ada activeMood atau activeCategory dan query dihapus, jangan kosongkan hasil
+      if (activeMood || activeCategory) return;
       
       setResults([]);
       setTotal(0);
@@ -61,44 +105,44 @@ export default function SearchPage() {
       return;
     }
     
-    // Jika user mengetik pencarian baru, matikan filter mood
-    if (activeMood) {
-      setActiveMood(null);
-    }
+    // Jika user mengetik pencarian baru, matikan filter mood & kategori
+    if (activeMood) setActiveMood(null);
+    if (activeCategory) setActiveCategory(null);
 
     clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(async () => {
-      setLoading(true);
-      setPage(1);
-      try {
-        const data = await searchMovies(query, "1");
-        setResults(data.results);
-        setTotal(data.total_results);
-        setHasMore(data.total_pages > 1);
-      } finally {
-        setLoading(false);
-      }
+    debounceRef.current = setTimeout(() => {
+      triggerSearch(query);
     }, 400);
     return () => clearTimeout(debounceRef.current);
-  }, [query, activeMood]);
+  }, [query]);
 
   const loadMore = async () => {
+    if (loading) return;
     const nextPage = page + 1;
     setLoading(true);
-    const data = activeMood
-      ? await getMoviesByMood(activeMood, String(nextPage))
-      : await searchMovies(query, String(nextPage));
-      
-    setResults((prev) => [...prev, ...data.results]);
-    setPage(nextPage);
-    setHasMore(nextPage < data.total_pages);
-    setLoading(false);
+    try {
+      let data;
+      if (activeCategory) {
+        data = await getMoviesByCategory(activeCategory, String(nextPage));
+      } else if (activeMood) {
+        data = await getMoviesByMood(activeMood, String(nextPage));
+      } else {
+        data = await searchMovies(query, String(nextPage));
+      }
+      setResults((prev) => [...prev, ...data.results]);
+      setPage(nextPage);
+      setHasMore(nextPage < data.total_pages);
+    } catch (err) {
+      console.error("Load more error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const startVoiceSearch = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert("Browser Anda tidak mendukung Pencarian Suara.");
+      alert("Browser Anda belum mendukung fitur Pencarian Suara (Web Speech API).");
       return;
     }
 
@@ -119,8 +163,11 @@ export default function SearchPage() {
     };
 
     recognition.onresult = (event: any) => {
-      const speechToText = event.results[0][0].transcript;
-      setQuery(speechToText);
+      const speechToText = event.results?.[0]?.[0]?.transcript || "";
+      if (speechToText) {
+        setQuery(speechToText);
+        triggerSearch(speechToText);
+      }
     };
 
     recognition.onerror = (event: any) => {
@@ -128,7 +175,12 @@ export default function SearchPage() {
       setIsListening(false);
     };
 
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error("Failed to start speech recognition:", e);
+      setIsListening(false);
+    }
   };
 
   return (
@@ -142,8 +194,14 @@ export default function SearchPage() {
           🔍 Cari Film
         </h1>
 
-        {/* Search input */}
-        <div className="relative">
+        {/* Search input form */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (query.trim()) triggerSearch(query);
+          }}
+          className="relative"
+        >
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-lg">🔍</span>
           <input
             ref={inputRef}
@@ -156,13 +214,19 @@ export default function SearchPage() {
           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
             {query && (
               <button
-                onClick={() => setQuery("")}
+                type="button"
+                onClick={() => {
+                  setQuery("");
+                  setResults([]);
+                  setTotal(0);
+                }}
                 className="text-muted hover:text-text text-xl p-1"
               >
                 ✕
               </button>
             )}
             <motion.button
+              type="button"
               whileTap={{ scale: 0.9 }}
               onClick={startVoiceSearch}
               className={`p-2 rounded-xl transition-all ${
@@ -175,10 +239,10 @@ export default function SearchPage() {
               🎤
             </motion.button>
           </div>
-        </div>
+        </form>
 
         {/* Suggestions */}
-        {!query && !activeMood && (
+        {!query && !activeMood && !activeCategory && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -187,7 +251,10 @@ export default function SearchPage() {
             {SUGGESTIONS.map((s) => (
               <button
                 key={s}
-                onClick={() => setQuery(s)}
+                onClick={() => {
+                  setQuery(s);
+                  triggerSearch(s);
+                }}
                 className="rounded-full glass border border-white/5 px-3 py-1.5 text-sm text-soft hover:text-text hover:border-purple/40 transition-all"
               >
                 {s}
@@ -199,27 +266,50 @@ export default function SearchPage() {
 
       {/* Results */}
       <AnimatePresence mode="wait">
-        {query || activeMood ? (
+        {query || activeMood || activeCategory ? (
           <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             {loading && results.length === 0 ? (
               <MovieGridSkeleton count={12} />
             ) : results.length > 0 ? (
               <>
-                <p className="mb-5 text-sm text-muted">
-                  {activeMood ? (
-                    <span>
-                      Rekomendasi untuk suasana hati:{" "}
-                      <span className="text-purple-light font-bold">
-                        {MOODS_MAP[activeMood]?.emoji} {MOODS_MAP[activeMood]?.label}
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-2 text-sm text-muted">
+                  <p>
+                    {activeCategory ? (
+                      <span>
+                        Katalog:{" "}
+                        <span className="text-purple-light font-bold">
+                          {CATEGORIES_MAP[activeCategory]?.emoji} {CATEGORIES_MAP[activeCategory]?.title}
+                        </span>
                       </span>
-                    </span>
-                  ) : (
-                    <span>
-                      <span className="text-text font-semibold">{total.toLocaleString()}</span> hasil untuk "
-                      <span className="text-purple-light">{query}</span>"
-                    </span>
+                    ) : activeMood ? (
+                      <span>
+                        Rekomendasi untuk suasana hati:{" "}
+                        <span className="text-purple-light font-bold">
+                          {MOODS_MAP[activeMood]?.emoji} {MOODS_MAP[activeMood]?.label}
+                        </span>
+                      </span>
+                    ) : (
+                      <span>
+                        <span className="text-text font-semibold">{total.toLocaleString()}</span> hasil untuk "
+                        <span className="text-purple-light">{query}</span>"
+                      </span>
+                    )}
+                  </p>
+
+                  {(activeCategory || activeMood) && (
+                    <button
+                      onClick={() => {
+                        setActiveCategory(null);
+                        setActiveMood(null);
+                        setResults([]);
+                        setQuery("");
+                      }}
+                      className="text-xs text-soft hover:text-purple-light underline"
+                    >
+                      Reset Filter
+                    </button>
                   )}
-                </p>
+                </div>
                 <MovieGrid movies={results} />
 
                 {hasMore && (

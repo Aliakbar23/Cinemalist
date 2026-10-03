@@ -3,11 +3,13 @@ movie-app/node_modules/
 movie-app/.next/
 movie-app/out/
 
-# Environment files
-movie-app/.env.local
-movie-app/.env.development.local
-movie-app/.env.production.local
-movie-app/.env.test.local
+# Environment and Secret files
+.env
+.env*.local
+*.env
+*.env.local
+movie-app/.env*
+!movie-app/.env.local.example
 
 # Operating System files
 .DS_Store

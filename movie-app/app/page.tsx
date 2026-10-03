@@ -173,22 +173,22 @@ export default async function HomePage() {
         <MovieRow
           movies={trending.results.slice(1, 15)}
           title="🔥 Sedang Trending"
-          seeAllHref="/search?q=Trending"
+          seeAllHref="/search?category=trending"
         />
         <MovieRow
           movies={nowPlaying.results.slice(0, 14)}
           title="🎥 Tayang Sekarang"
-          seeAllHref="/search?q=Now+Playing"
+          seeAllHref="/search?category=now_playing"
         />
         <MovieRow
           movies={topRated.results.slice(0, 14)}
           title="⭐ Rating Tertinggi"
-          seeAllHref="/search?q=Top+Rated"
+          seeAllHref="/search?category=top_rated"
         />
         <MovieRow
           movies={upcoming.results.slice(0, 14)}
           title="📅 Segera Hadir"
-          seeAllHref="/search?q=Upcoming"
+          seeAllHref="/search?category=upcoming"
         />
       </div>
     </div>

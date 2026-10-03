@@ -132,3 +132,50 @@ export async function checkPendingReminders() {
     }
   }
 }
+
+// ---- Backup & Restore Helpers ----
+
+export async function exportWatchlistData(): Promise<string> {
+  const watchlist = await db.watchlist.toArray();
+  const reminders = await db.reminders.toArray();
+  return JSON.stringify(
+    {
+      app: "CineVault",
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      watchlist,
+      reminders,
+    },
+    null,
+    2
+  );
+}
+
+export async function importWatchlistData(jsonString: string): Promise<{ imported: number }> {
+  const parsed = JSON.parse(jsonString);
+  if (!parsed || !Array.isArray(parsed.watchlist)) {
+    throw new Error("Format file cadangan tidak valid.");
+  }
+  let count = 0;
+  for (const item of parsed.watchlist) {
+    if (item && typeof item.id === "number" && item.title) {
+      await db.watchlist.put({
+        ...item,
+        addedAt: item.addedAt || Date.now(),
+      });
+      count++;
+    }
+  }
+  if (Array.isArray(parsed.reminders)) {
+    for (const rem of parsed.reminders) {
+      if (rem && typeof rem.id === "number") {
+        await db.reminders.put({
+          ...rem,
+          scheduledAt: rem.scheduledAt || Date.now(),
+        });
+      }
+    }
+  }
+  return { imported: count };
+}
+
